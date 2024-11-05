@@ -32,8 +32,8 @@
             color: white;
         }
         canvas {
-            border: 15px solid green; /* Green border */
-            background-color: black; /* Game area background */
+            border: 15px solid green;
+            background-color: black;
             border-radius: 10px;
         }
     </style>
@@ -65,7 +65,10 @@
         const shakaImage = new Image();
         shakaImage.src = 'shaka.png';
         shakaImage.onload = () => console.log("Shaka symbol loaded successfully.");
-        shakaImage.onerror = () => console.error("Failed to load shaka symbol. Ensure 'shaka.png' is in the same directory.");
+        shakaImage.onerror = () => {
+            console.error("Failed to load shaka symbol. Ensure 'shaka.png' is in the same directory.");
+            // Fallback to red square if image fails
+        };
 
         // Update scoreboard
         function updateScoreboard() {
@@ -82,7 +85,7 @@
 
         // Draw the shaka symbol as the fruit
         function drawFruit() {
-            if (shakaImage.complete) {
+            if (shakaImage.complete && shakaImage.naturalWidth !== 0) {
                 ctx.drawImage(shakaImage, fruit.x, fruit.y, gridSize, gridSize);
             } else {
                 ctx.fillStyle = "red";
@@ -134,53 +137,27 @@
             return false;
         }
 
-        // Update game
+        // Update game loop
         function update() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawSnake();
             drawFruit();
             moveSnake();
 
-            // Check for collisions and reset if needed
             if (checkCollisions()) {
                 resetGame();
             }
         }
 
-        // Handle swipe controls for mobile
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        canvas.addEventListener("touchstart", (e) => {
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
+        // Keyboard controls for testing
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight" && direction.x === 0) direction = { x: 1, y: 0 };
+            if (e.key === "ArrowLeft" && direction.x === 0) direction = { x: -1, y: 0 };
+            if (e.key === "ArrowUp" && direction.y === 0) direction = { x: 0, y: -1 };
+            if (e.key === "ArrowDown" && direction.y === 0) direction = { x: 0, y: 1 };
         });
 
-        canvas.addEventListener("touchmove", (e) => {
-            const touch = e.touches[0];
-            const deltaX = touch.clientX - touchStartX;
-            const deltaY = touch.clientY - touchStartY;
-
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                if (deltaX > 0 && direction.x === 0) {
-                    direction = { x: 1, y: 0 };
-                } else if (deltaX < 0 && direction.x === 0) {
-                    direction = { x: -1, y: 0 };
-                }
-            } else {
-                if (deltaY > 0 && direction.y === 0) {
-                    direction = { x: 0, y: 1 };
-                } else if (deltaY < 0 && direction.y === 0) {
-                    direction = { x: 0, y: -1 };
-                }
-            }
-
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-        });
-
-        // Game loop (interval at 200ms for moderate speed)
+        // Start game loop
         setInterval(update, 200);
     </script>
 </body>
