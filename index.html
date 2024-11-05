@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sassy Snake</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background-color: black;
+            font-family: Arial, sans-serif;
+        }
+        #scoreboard {
+            position: absolute;
+            top: 10px;
+            text-align: center;
+            font-size: 24px;
+            width: 100%;
+            color: white;
+        }
+        #instruction {
+            position: absolute;
+            top: 40px; /* Position below the scoreboard */
+            text-align: center;
+            font-size: 36px;
+            width: 100%;
+            color: white;
+        }
+        canvas {
+            border: 20px solid red;
+            border-radius: 10px;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+    <div id="scoreboard">Sassy Snake</div>
+    <div id="instruction">Only in the Circle</div>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Set canvas to a slightly smaller size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth * 0.85; // 85% of the window width
+            canvas.height = window.innerHeight * 0.75; // 75% of the window height
+        }
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
+
+        // Game settings
+        const gridSize = 40;
+        let snake = [{ x: gridSize * 5, y: gridSize * 5 }];
+        let direction = { x: 1, y: 0 };
+        let fruit = { x: gridSize * 8, y: gridSize * 8 };
+        let score = 0;
+
+        // Load the shaka symbol image
+        const shakaImage = new Image();
+        shakaImage.src = 'shaka.png'; // Ensure this image file is in the same directory
+
+        // Update scoreboard
+        function updateScoreboard() {
+            document.getElementById("scoreboard").innerText = `Score: ${score}`;
+        }
+
+        // Draw snake
+        function drawSnake() {
+            ctx.fillStyle = "lime";
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+            });
+        }
+
+        // Draw the shaka symbol as the new "fruit"
+        function drawFruit() {
+            ctx.drawImage(shakaImage, fruit.x, fruit.y, gridSize, gridSize);
+        }
+
+        // Move the snake
+        function moveSnake() {
+            const head = { x: snake[0].x + direction.x * gridSize, y: snake[0].y + direction.y * gridSize };
+            snake.unshift(head);
+
+            // Check if snake eats the fruit
+            if (head.x === fruit.x && head.y === fruit.y) {
+                score++;
+                updateScoreboard();
+                placeFruit();
+            } else {
+                snake.pop();
+            }
+        }
+
+        // Place fruit at a random position
+        function placeFruit() {
+            fruit.x = Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize;
+            fruit.y = Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize;
+        }
+
+        // Reset the game
+        function resetGame() {
+            score = 0;
+            updateScoreboard();
+            snake = [{ x: gridSize * 5, y: gridSize * 5 }];
+            direction = { x: 1, y: 0 };
+            placeFruit();
+        }
+
+        // Check for collisions
+        function checkCollisions() {
+            const head = snake[0];
+
+            // Check wall collisions
+            if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height) {
+                return true;
+            }
+
+            // Check self-collision
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Update game
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSnake();
+            drawFruit();
+            moveSnake();
+
+            // Check for collisions and reset if needed
+            if (checkCollisions()) {
+                resetGame();
+            }
+        }
+
+        // Handle swipe controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        canvas.addEventListener("touchstart", (e) => {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        });
+
+        canvas.addEventListener("touchmove", (e) => {
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 0 && direction.x === 0) {
+                    direction = { x: 1, y: 0 };
+                } else if (deltaX < 0 && direction.x === 0) {
+                    direction = { x: -1, y: 0 };
+                }
+            } else {
+                if (deltaY > 0 && direction.y === 0) {
+                    direction = { x: 0, y: 1 };
+                } else if (deltaY < 0 && direction.y === 0) {
+                    direction = { x: 0, y: -1 };
+                }
+            }
+
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        });
+
+        // Game loop (interval at 133ms for faster speed)
+        setInterval(update, 133);
+
+    </script>
+</body>
+</html>
