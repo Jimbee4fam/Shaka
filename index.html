@@ -46,7 +46,7 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Set canvas to a slightly smaller size
+        // Adjust canvas size
         function resizeCanvas() {
             canvas.width = window.innerWidth * 0.85; // 85% of the window width
             canvas.height = window.innerHeight * 0.75; // 75% of the window height
@@ -64,14 +64,10 @@
         // Load the shaka symbol image
         const shakaImage = new Image();
         shakaImage.src = 'shaka.png'; // Ensure this image file is in the same directory
-        shakaImage.onload = function() {
-            console.log("Shaka symbol loaded successfully.");
-        };
-        shakaImage.onerror = function() {
-            console.error("Failed to load shaka symbol. Ensure 'shaka.png' is in the same directory as this HTML file.");
-        };
+        shakaImage.onload = () => console.log("Shaka symbol loaded successfully.");
+        shakaImage.onerror = () => console.error("Failed to load shaka symbol. Make sure 'shaka.png' is in the same directory.");
 
-        // Draw snake
+        // Draw the snake
         function drawSnake() {
             ctx.fillStyle = "lime";
             snake.forEach(segment => {
@@ -79,10 +75,13 @@
             });
         }
 
-        // Draw the shaka symbol as the new "fruit"
+        // Draw the shaka symbol as the fruit
         function drawFruit() {
-            if (shakaImage.complete) { // Check if image is loaded
+            if (shakaImage.complete) {
                 ctx.drawImage(shakaImage, fruit.x, fruit.y, gridSize, gridSize);
+            } else {
+                ctx.fillStyle = "red";
+                ctx.fillRect(fruit.x, fruit.y, gridSize, gridSize);
             }
         }
 
@@ -117,71 +116,36 @@
         // Check for collisions
         function checkCollisions() {
             const head = snake[0];
-
-            // Check wall collisions
             if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height) {
                 return true;
             }
-
-            // Check self-collision
             for (let i = 1; i < snake.length; i++) {
                 if (head.x === snake[i].x && head.y === snake[i].y) {
                     return true;
                 }
             }
-
             return false;
         }
 
-        // Update game
+        // Game loop
         function update() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawSnake();
             drawFruit();
             moveSnake();
-
-            // Check for collisions and reset if needed
-            if (checkCollisions()) {
-                resetGame();
-            }
+            if (checkCollisions()) resetGame();
         }
 
-        // Handle swipe controls for mobile
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        canvas.addEventListener("touchstart", (e) => {
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
+        // Keyboard controls
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight" && direction.x === 0) direction = { x: 1, y: 0 };
+            if (e.key === "ArrowLeft" && direction.x === 0) direction = { x: -1, y: 0 };
+            if (e.key === "ArrowUp" && direction.y === 0) direction = { x: 0, y: -1 };
+            if (e.key === "ArrowDown" && direction.y === 0) direction = { x: 0, y: 1 };
         });
 
-        canvas.addEventListener("touchmove", (e) => {
-            const touch = e.touches[0];
-            const deltaX = touch.clientX - touchStartX;
-            const deltaY = touch.clientY - touchStartY;
-
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                if (deltaX > 0 && direction.x === 0) {
-                    direction = { x: 1, y: 0 };
-                } else if (deltaX < 0 && direction.x === 0) {
-                    direction = { x: -1, y: 0 };
-                }
-            } else {
-                if (deltaY > 0 && direction.y === 0) {
-                    direction = { x: 0, y: 1 };
-                } else if (deltaY < 0 && direction.y === 0) {
-                    direction = { x: 0, y: -1 };
-                }
-            }
-
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-        });
-
-        // Game loop (interval at 133ms for faster speed)
-        setInterval(update, 133);
-
+        // Game loop interval
+        setInterval(update, 167);
     </script>
 </body>
 </html>
