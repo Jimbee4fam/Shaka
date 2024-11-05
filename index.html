@@ -15,7 +15,7 @@
             background-color: black;
             font-family: Arial, sans-serif;
         }
-        #scoreboard {
+        #title {
             position: absolute;
             top: 10px;
             text-align: center;
@@ -25,7 +25,7 @@
         }
         #instruction {
             position: absolute;
-            top: 40px; /* Position below the scoreboard */
+            top: 40px; /* Position below the title */
             text-align: center;
             font-size: 36px;
             width: 100%;
@@ -39,7 +39,7 @@
     </style>
 </head>
 <body>
-    <div id="scoreboard">Sassy Snake</div>
+    <div id="title">Sassy Snake</div>
     <div id="instruction">Only in the Circle</div>
     <canvas id="gameCanvas"></canvas>
     <script>
@@ -64,11 +64,12 @@
         // Load the shaka symbol image
         const shakaImage = new Image();
         shakaImage.src = 'shaka.png'; // Ensure this image file is in the same directory
-
-        // Update scoreboard
-        function updateScoreboard() {
-            document.getElementById("scoreboard").innerText = `Score: ${score}`;
-        }
+        shakaImage.onload = function() {
+            console.log("Shaka symbol loaded successfully.");
+        };
+        shakaImage.onerror = function() {
+            console.error("Failed to load shaka symbol. Ensure 'shaka.png' is in the same directory as this HTML file.");
+        };
 
         // Draw snake
         function drawSnake() {
@@ -80,7 +81,9 @@
 
         // Draw the shaka symbol as the new "fruit"
         function drawFruit() {
-            ctx.drawImage(shakaImage, fruit.x, fruit.y, gridSize, gridSize);
+            if (shakaImage.complete) { // Check if image is loaded
+                ctx.drawImage(shakaImage, fruit.x, fruit.y, gridSize, gridSize);
+            }
         }
 
         // Move the snake
@@ -91,7 +94,6 @@
             // Check if snake eats the fruit
             if (head.x === fruit.x && head.y === fruit.y) {
                 score++;
-                updateScoreboard();
                 placeFruit();
             } else {
                 snake.pop();
@@ -107,7 +109,6 @@
         // Reset the game
         function resetGame() {
             score = 0;
-            updateScoreboard();
             snake = [{ x: gridSize * 5, y: gridSize * 5 }];
             direction = { x: 1, y: 0 };
             placeFruit();
